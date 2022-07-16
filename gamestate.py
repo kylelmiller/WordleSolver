@@ -161,6 +161,7 @@ class GameState:
             if (
                 (len(character_counter) != len(self.included_letters))
                 and (self.total_guesses > len(self.previous_tries) + 1)
+                and len(self.remaining_words) > 2
             )
             else self.remaining_words
         ):
@@ -230,7 +231,7 @@ class GameState:
             # These are the top two word with the win rates calculated over 200k simulated games
             # The win rate with these words is 1.0 using Monte Carlo
             # 00 = {tuple: 2}(0.9888745148771022, 'rates')
-            # 01 = {tuple: 2}(0.9886082218920258, 'dates')
+            # 01 = {tuple: 2}(0.9886082218920258, 'dates') aides is also good
             return random.sample([(1.0, "rates"), (1.0, "dates")], 2)
 
         number_of_simulations = min(len(self.remaining_words) * 50, self.MAX_MONTE_CARLO_SIMILATED_OUTCOMES)

@@ -24,7 +24,7 @@ def main(times_to_play=5000) -> None:
     for i in range(times_to_play):
         hidden_word = random.choice(words)
         print(f"Hidden word is: {hidden_word}")
-        game_state = GameState(words, verbose=True)
+        game_state = GameState(words, verbose=True, total_guesses=4)
         while not game_state.is_game_over():
             best_guess = game_state.get_monte_carlo_choice()
             game_state.update_with_hidden_word(best_guess, hidden_word)
@@ -47,11 +47,11 @@ def main(times_to_play=5000) -> None:
         [
             (k, sum(choice_outcomes[k]) / len(choice_outcomes[k]))
             for k in choice_outcomes
-            if len(choice_outcomes[k]) > times_to_play / 25
+            if len(choice_outcomes[k]) >= times_to_play / 50
         ]
     )
     print(f"The misses were: {misses}")
 
 
 if __name__ == "__main__":
-    main()
+    main(times_to_play=200_000)

@@ -28,11 +28,16 @@ def main() -> None:
             for choice in best_choices:
                 print(f"{choice[1]} ({choice[0]})")
             word_choice = input("What is your word choice?")
+            while len(word_choice) != game_state.HIDDEN_WORD_LENGTH:
+                word_choice = input(
+                    f"The word you entered is not the correct length of {game_state.HIDDEN_WORD_LENGTH}. "
+                    "What is your word choice?"
+                )
             if word_choice not in {choice[1] for choice in best_choices}:
                 print(
                     f"That choice changes the projected win percentage to {game_state.get_percentage_chance_of_winning(word_choice)}"
                 )
-            outcome = input("What was out the outcome?")
+            outcome = input("What was the outcome?")
             print("Calculating")
             game_state.update_with_text_outcome(word_choice, outcome)
 
