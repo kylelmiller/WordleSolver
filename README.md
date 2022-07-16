@@ -15,10 +15,3 @@ a given algorithm.
 This is used for solving an unknown Wordle puzzle. It will give you the top suggested words for your next guess with 
 the estimated win rate if those are the next guesses. If you choose a different word it will estimate the percent
 chance of a win.
-
-## Known Issues
-
-The dictionary is a subset of the Wordle dictionary. I looked around for a list of 5 letter English words and a lot of
-them had "words" that were not words. I went with a safe list where every word was a real English word at the cost of
-missing words.
-
