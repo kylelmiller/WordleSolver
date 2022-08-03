@@ -17,6 +17,7 @@ class GameState:
     TOTAL_GUESSES = 6
     HIDDEN_WORD_LENGTH = 5
     MAX_CONSIDERED_GOOD_GUESSES = 50
+    GAME_LOST_PENALTY_MULTIPLIER = 10
     LETTER_KNOWN_PENALTY = 0.01
 
     def __init__(self, dictionary: List[str], **kwargs):
@@ -138,8 +139,8 @@ class GameState:
 
         :return:
         """
-        if len(self.remaining_words) == 1:
-            return self.remaining_words[0]
+        if len(self.remaining_words) <= 2:
+            return random.choice(self.remaining_words)
 
         character_counter = Counter("".join(self.remaining_words))
 
@@ -166,12 +167,18 @@ class GameState:
             else self.remaining_words
         ):
             score = sum(character_scores.get(c, 0) for c in set(word))
-            if len(word_scores_heap) < min(math.ceil(len(self.remaining_words) / 5), self.MAX_CONSIDERED_GOOD_GUESSES):
+            if len(word_scores_heap) < max(
+                min(math.ceil(len(self.remaining_words) / 5), self.MAX_CONSIDERED_GOOD_GUESSES), 5
+            ):
                 heapq.heappush(word_scores_heap, (score, word))
             elif score > word_scores_heap[0][0]:
                 heapq.heapreplace(word_scores_heap, (score, word))
 
-        return random.choice(word_scores_heap)[1]
+        solution_words = [v[1] for v in word_scores_heap]
+        if len(self.remaining_words) <= 5:
+            solution_words = list(set(solution_words) | set(self.remaining_words))
+
+        return random.choice(solution_words)
 
     def deepcopy(self):  # -> GameState
         """
@@ -227,12 +234,13 @@ class GameState:
         """
 
         if len(self.previous_tries) == 0:
-            # The win rates for first chosen words without Monte Carlo at any level
-            # These are the top two word with the win rates calculated over 200k simulated games
-            # The win rate with these words is 1.0 using Monte Carlo
-            # 00 = {tuple: 2}(0.9888745148771022, 'rates')
-            # 01 = {tuple: 2}(0.9886082218920258, 'dates') aides is also good
-            return random.sample([(1.0, "rates"), (1.0, "dates")], 2)
+            return [
+                (3.959705882352941, "dates"),
+                (3.970299884659746, "dales"),
+                (3.971229293809939, "dares"),
+                (3.984014209591474, "lanes"),
+                (3.988081725312145, "rates"),
+            ]
 
         number_of_simulations = min(len(self.remaining_words) * 50, self.MAX_MONTE_CARLO_SIMILATED_OUTCOMES)
         choice_outcomes = defaultdict(list)
@@ -243,14 +251,18 @@ class GameState:
                 best_guess = monte_carlo_game_state.get_best_guess()
                 monte_carlo_game_state.update_with_hidden_word(best_guess, hidden_word)
                 if best_guess == hidden_word:
-                    choice_outcomes[monte_carlo_game_state.previous_tries[0]].append(True)
+                    choice_outcomes[monte_carlo_game_state.previous_tries[0]].append(
+                        len(monte_carlo_game_state.previous_tries + self.previous_tries)
+                    )
                     break
             else:
-                choice_outcomes[monte_carlo_game_state.previous_tries[0]].append(False)
+                choice_outcomes[monte_carlo_game_state.previous_tries[0]].append(
+                    len(monte_carlo_game_state.previous_tries + self.previous_tries) * self.GAME_LOST_PENALTY_MULTIPLIER
+                )
 
-        return sorted(
-            [(sum(outcomes) / len(outcomes), word) for word, outcomes in choice_outcomes.items()], reverse=True
-        )[:limit]
+        return sorted([(sum(outcomes) / float(len(outcomes)), word) for word, outcomes in choice_outcomes.items()])[
+            :limit
+        ]
 
     def get_monte_carlo_choice(self):
         """

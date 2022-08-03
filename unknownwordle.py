@@ -23,6 +23,10 @@ def main() -> None:
         print("r0t2a means 'r' in the first spot, 't' in the 3rd spot and 'a' is in the result.")
 
         while not game_state.is_game_over():
+            if len(game_state.remaining_words) <= 5:
+                print("Remaining words:")
+                for word in game_state.remaining_words:
+                    print(word)
             best_choices = game_state.get_monte_carlo_choices()
             print("Suggested choices:")
             for choice in best_choices:
